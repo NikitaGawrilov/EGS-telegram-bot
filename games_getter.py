@@ -1,6 +1,8 @@
 import requests
 import json
 from json import JSONDecodeError
+import datetime as dt
+import pytz
 
 locales = {
     "ru": ("ru-RU", "RU"),
@@ -36,14 +38,30 @@ def get_curr_free():
     return currently_free
 
 def get_upcoming_free():
+    #TODO фильтровать попадания левых игр по акции
     all_games = get_free_games()
     upcoming_free = [game for game in all_games
-                     if game.get("promotions") and game.get("promotions").get("upcomingPromotionalOffers")]
+                     if game.get("promotions")
+                     and game.get("promotions").get("upcomingPromotionalOffers")
+                     and game.get("promotions").get("upcomingPromotionalOffers")[0]['promotionalOffers'][0]['discountSetting']['discountPercentage'] == 0]
 
     return upcoming_free
 
+
 if __name__ == "__main__":
-    free = get_upcoming_free()
+    free = get_free_games()
     free_json = json.dumps(free)
     print(free_json)
+    # free = get_upcoming_free()
+    # time = free[0]['promotions']['upcomingPromotionalOffers'][0]['promotionalOffers'][0]['startDate']
+    # stmp = dt.datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
+    # utc_stmp = pytz.utc.localize(stmp)
+    # offset = 5
+    # tiz = dt.timezone(dt.timedelta(hours=offset))
+    # tz_stmp = utc_stmp.astimezone(tiz)
+    # print(time)
+    # print(stmp)
+    # print(tz_stmp)
+    # free_json = json.dumps(free)
+    # print(free_json)
 

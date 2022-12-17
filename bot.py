@@ -3,6 +3,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from config import BOT_TOKEN
 from games_getter import get_curr_free, get_upcoming_free
 from utils import localize_time
+from mongodb_connector import get_user, add_user
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -11,10 +12,13 @@ disp = Dispatcher(bot)
 @disp.message_handler(commands=['start'])
 async def start(message: types.Message):
     base_kb = ReplyKeyboardMarkup(
-        [[KeyboardButton("Что раздают сейчас?"), KeyboardButton("Что раздадут следующим?")]],
+        [[KeyboardButton("Что раздают сейчас?"), KeyboardButton("Что раздадут следующим?")],
+         [KeyboardButton("Указать свой часовой пояс")]],
         resize_keyboard=True,
         one_time_keyboard=False
     )
+    pics = dict(await message.from_user.get_profile_photos())
+    add_user(user=message.from_user, pics=pics)
     await message.answer("Hi there!", reply_markup=base_kb)
 
 @disp.message_handler(lambda message: message.text == "Что раздают сейчас?")
@@ -63,6 +67,18 @@ async def current_giveaway(message: types.Message):
             ),
             parse_mode="Markdown"
         )
+
+
+@disp.message_handler(lambda message: message.text == "Указать свой часовой пояс")
+async def define_timezone(message: types.Message):
+    user = get_user(message.from_user.id)
+    if user:
+        tz = user['timezone']
+        await message.answer(f"На данный момент у вас установлен часовой пояс UTC{f'+{tz}' if tz >= 0 else tz}")
+        await message.answer('Если хотите его изменить, отправьте в ответ на это сообщение '
+                             'отступ вашего часового пояса от UTC в часах со знаком +/-. '
+                             'К примеру, для установки московского времени (UTC+3) необходимо отправить "+3",'
+                             'а для установки ньюфаундлендского времени - "-3.5"')
 
 
 if __name__ == "__main__":

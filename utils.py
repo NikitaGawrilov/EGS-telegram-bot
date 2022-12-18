@@ -16,3 +16,19 @@ def localize_time(from_time_str: str, upto_time_str: str, user_id: int):
         upto_stmp = upto_stmp.astimezone(user_tz)
     return (f"{from_stmp:%d.%m.%Y %H:%M %Z}",
             f"{upto_stmp:%d.%m.%Y %H:%M %Z}")
+
+
+def get_timezone_kb():
+    buttons = [
+        types.InlineKeyboardButton(text='+ 15 мин', callback_data="tz_plus15min"),
+        types.InlineKeyboardButton(text='+ 30 мин', callback_data="tz_plus30min"),
+        types.InlineKeyboardButton(text='+ 1 ч', callback_data="tz_plus1h"),
+        types.InlineKeyboardButton(text='- 15 мин', callback_data="tz_minus15min"),
+        types.InlineKeyboardButton(text='- 30 мин', callback_data="tz_minus30min"),
+        types.InlineKeyboardButton(text='- 1 ч', callback_data="tz_minus1h"),
+        types.InlineKeyboardButton(text='Подтвердить', callback_data='tz_done'),
+        types.InlineKeyboardButton(text='Отмена', callback_data='tz_abort')
+    ]
+    kb = types.InlineKeyboardMarkup(row_width=3)
+    kb.add(*buttons)
+    return kb

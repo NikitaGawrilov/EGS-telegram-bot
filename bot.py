@@ -93,6 +93,9 @@ async def set_timezone(callback: types.CallbackQuery):
     await callback.answer()
 
 
+# TODO Подумать над оптимизацией
+# TODO Настроить конечный автомат
+# TODO Рефакторнуть
 @disp.callback_query_handler(Text(startswith="tz_"))
 async def timezone_callbacks(callback: types.CallbackQuery):
     action = callback.data.split('_')[1]

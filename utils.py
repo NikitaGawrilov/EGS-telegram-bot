@@ -14,8 +14,8 @@ def localize_time(from_time_str: str, upto_time_str: str, user_id: int):
         user_tz = dt.timezone(dt.timedelta(hours=user_tz_offset))
         from_stmp = from_stmp.astimezone(user_tz)
         upto_stmp = upto_stmp.astimezone(user_tz)
-    return (f"{from_stmp:%d.%m.%Y %H:%M %Z}",
-            f"{upto_stmp:%d.%m.%Y %H:%M %Z}")
+    return (f"{from_stmp:%d.%m.%Y %H:%M}",
+            f"{upto_stmp:%d.%m.%Y %H:%M} ({upto_stmp:%Z})")
 
 
 def get_timezone_kb():
@@ -26,8 +26,8 @@ def get_timezone_kb():
         types.InlineKeyboardButton(text='- 15 мин', callback_data="tz_minus15min"),
         types.InlineKeyboardButton(text='- 30 мин', callback_data="tz_minus30min"),
         types.InlineKeyboardButton(text='- 1 ч', callback_data="tz_minus1h"),
-        types.InlineKeyboardButton(text='Подтвердить', callback_data='tz_done'),
-        types.InlineKeyboardButton(text='Отмена', callback_data='tz_abort')
+        types.InlineKeyboardButton(text='Подтвердить ✅', callback_data='tz_done'),
+        types.InlineKeyboardButton(text='Отмена ❌', callback_data='tz_abort')
     ]
     kb = types.InlineKeyboardMarkup(row_width=3)
     kb.add(*buttons)

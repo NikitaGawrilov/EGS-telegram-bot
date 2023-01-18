@@ -1,3 +1,6 @@
+import asyncio
+
+
 import aiogram
 from aiogram import Bot, Dispatcher, executor, types, md
 from aiogram.dispatcher.filters import Text
@@ -6,6 +9,8 @@ from config import BOT_TOKEN
 from games_getter import get_curr_free, get_upcoming_free
 from utils import localize_time, get_timezone_kb
 from mongodb_connector import get_user, add_user, update_timezone
+from scheduler import create_scheduler
+
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -147,10 +152,20 @@ async def timezone_callbacks(callback: types.CallbackQuery):
 
 @disp.callback_query_handler(text="set_notifications")
 async def set_notifications(callback: types.CallbackQuery):
-    await callback.message.answer("Забей...")
+    await callback.message.answer("Не торопи события...")
     await callback.answer()
+
+@disp.message_handler()
+async def notification():
+    await bot.send_message(chat_id=1162013515, text='Sup')
+
+
+async def on_start(disp):
+    pass
 
 
 if __name__ == "__main__":
-    executor.start_polling(disp, skip_updates=True)
+    create_scheduler(notification)
+    executor.start_polling(disp, skip_updates=True, on_startup=on_start)
+
 

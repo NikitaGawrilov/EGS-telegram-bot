@@ -1,16 +1,13 @@
 import asyncio
-
-
 import aiogram
 from aiogram import Bot, Dispatcher, executor, types, md
 from aiogram.dispatcher.filters import Text
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from config import BOT_TOKEN
 from games_getter import get_curr_free, get_upcoming_free
-from utils import localize_time, get_timezone_kb
-from mongodb_connector import get_user, add_user, update_timezone
+from utils import localize_time, get_timezone_kb, is_games_same
+from mongodb_connector import get_user, add_user, update_timezone, get_latest_giveaway, add_current_giveaway
 from scheduler import create_scheduler
-
 
 
 bot = Bot(token=BOT_TOKEN)
@@ -155,9 +152,15 @@ async def set_notifications(callback: types.CallbackQuery):
     await callback.message.answer("Не торопи события...")
     await callback.answer()
 
+
 @disp.message_handler()
 async def notification():
-    await bot.send_message(chat_id=1162013515, text='Sup')
+    current_games = get_curr_free()
+    latest_games = get_latest_giveaway()
+    if is_games_same(latest_games, current_games):
+        pass
+    else:
+        add_current_giveaway(current_games)
 
 
 async def on_start(disp):

@@ -1,4 +1,3 @@
-import asyncio
 from aiogram import types
 from mongodb_connector import get_user
 import datetime as dt
@@ -32,3 +31,11 @@ def get_timezone_kb():
     kb = types.InlineKeyboardMarkup(row_width=3)
     kb.add(*buttons)
     return kb
+
+
+def is_games_same(db_latest: list, current: list):
+    if len(db_latest) == len(current):
+        ziped = list(zip(db_latest, current))
+        return all(cur['title'] == db['title'] for (cur, db) in ziped)
+    else:
+        return False

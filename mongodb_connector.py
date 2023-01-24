@@ -1,16 +1,18 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
 from config import MONGO_CONN_LINK
 from aiogram import types
-import asyncio
+from datetime import datetime as dt
 
 client = MongoClient(MONGO_CONN_LINK)
 db = client.freeEGS_users
+
 
 def get_user(user_id):
     user = db.users.find_one({"user_id": user_id})
     if user:
         return user
     return None
+
 
 def add_user(user: types.User, pics: dict):
     if not db.users.find_one({"user_id": user.id}):
@@ -32,6 +34,7 @@ def add_user(user: types.User, pics: dict):
     else:
         return False
 
+
 def update_timezone(user_id: int, timezone: int):
     if db.users.find_one({"user_id": user_id}):
         try:
@@ -43,4 +46,21 @@ def update_timezone(user_id: int, timezone: int):
         except Exception:
             return False
     else:
+        return False
+
+
+def get_latest_giveaway():
+    latest = db.currentGiveaway.find().sort('timestamp', DESCENDING)[0]
+    latest.pop('_id')
+    latest.pop('timestamp')
+    return list(latest.values())
+
+
+def add_current_giveaway(games: list):
+    ziped_games = dict(zip(map(str, range(len(games)+1)), games))
+    ziped_games.update({'timestamp': dt.utcnow()})
+    try:
+        db.currentGiveaway.insert_one(ziped_games)
+        return True
+    except Exception:
         return False

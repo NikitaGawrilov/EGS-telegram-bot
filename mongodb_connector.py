@@ -14,6 +14,11 @@ def get_user(user_id):
     return None
 
 
+def get_all_users():
+    users = db.users.find()
+    return list(users)
+
+
 def add_user(user: types.User, pics: dict):
     if not db.users.find_one({"user_id": user.id}):
         try:

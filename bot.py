@@ -1,12 +1,12 @@
 import asyncio
-import aiogram
+from aiogram.utils.exceptions import ChatNotFound
 from aiogram import Bot, Dispatcher, executor, types, md
 from aiogram.dispatcher.filters import Text
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from config import BOT_TOKEN
 from games_getter import get_curr_free, get_upcoming_free
 from utils import localize_time, get_timezone_kb, is_games_same
-from mongodb_connector import get_user, add_user, update_timezone, get_latest_giveaway, add_current_giveaway
+from mongodb_connector import get_user, add_user, update_timezone, get_latest_giveaway, add_current_giveaway, get_all_users
 from scheduler import create_scheduler
 
 
@@ -30,28 +30,12 @@ async def start(message: types.Message):
 async def current_giveaway(message: types.Message):
     await message.reply(f"Вот что раздают бесплатно в EGS в данный момент:")
     games = get_curr_free()
-    for game in games:
-        local_timestamps = localize_time(
-            game['promotions']['promotionalOffers'][0]['promotionalOffers'][0]['startDate'],
-            game['promotions']['promotionalOffers'][0]['promotionalOffers'][0]['endDate'],
-            message.from_user.id
-        )
-        await message.answer_photo(
-            photo=game["keyImages"][0]["url"],
-            caption=md.text(
-                md.bold(f"{game['title']}"),
-                md.italic(f"{game['seller']['name']}"),
-                f"{int(game['price']['totalPrice']['originalPrice'])/100:.2f} "
-                f"{game['price']['totalPrice']['currencyCode']}",
-                f"С {local_timestamps[0]} по {local_timestamps[1]}",
-                sep='\n'
-            ),
-            parse_mode="Markdown"
-        )
-#TODO Доделать дату
+    await send_notification(user_id=message.from_user.id,
+                            games=games)
+
 
 @disp.message_handler(lambda message: message.text == "Что раздадут следующим?")
-async def current_giveaway(message: types.Message):
+async def upcoming_giveaway(message: types.Message):
     await message.reply(f"Вот что раздадут бесплатно в EGS в ближайшее время:")
     games = get_upcoming_free()
     for game in games:
@@ -72,7 +56,31 @@ async def current_giveaway(message: types.Message):
             ),
             parse_mode="Markdown"
         )
-
+@disp.message_handler()
+async def send_notification(user_id: int, games: list):
+    for game in games:
+        local_timestamps = localize_time(
+            game['promotions']['promotionalOffers'][0]['promotionalOffers'][0]['startDate'],
+            game['promotions']['promotionalOffers'][0]['promotionalOffers'][0]['endDate'],
+            user_id
+        )
+        try:
+            await bot.send_photo(
+                chat_id=user_id,
+                photo=game["keyImages"][0]["url"],
+                caption=md.text(
+                    md.bold(f"{game['title']}"),
+                    md.italic(f"{game['seller']['name']}"),
+                    f"{int(game['price']['totalPrice']['originalPrice'])/100:.2f} "
+                    f"{game['price']['totalPrice']['currencyCode']}",
+                    f"С {local_timestamps[0]} по {local_timestamps[1]}",
+                    sep='\n'
+                ),
+                parse_mode="Markdown"
+            )
+        except ChatNotFound as ex:
+            print(f"{ex.text} | user_id: {user_id}")
+            continue
 
 @disp.message_handler(lambda message: message.text == "Настройки")
 async def user_settings(message: types.Message):
@@ -161,6 +169,9 @@ async def notification():
         pass
     else:
         add_current_giveaway(current_games)
+        users = get_all_users()
+        for user in users:
+            await send_notification(user['user_id'], current_games)
 
 
 async def on_start(disp):

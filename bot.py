@@ -30,8 +30,7 @@ async def start(message: types.Message):
 async def current_giveaway(message: types.Message):
     await message.reply(f"Вот что раздают бесплатно в EGS в данный момент:")
     games = get_curr_free()
-    await send_notification(user_id=message.from_user.id,
-                            games=games)
+    await send_notification(message.from_user.id, games)
 
 
 @disp.message_handler(lambda message: message.text == "Что раздадут следующим?")
@@ -56,7 +55,7 @@ async def upcoming_giveaway(message: types.Message):
             ),
             parse_mode="Markdown"
         )
-@disp.message_handler()
+
 async def send_notification(user_id: int, games: list):
     for game in games:
         local_timestamps = localize_time(
@@ -161,7 +160,7 @@ async def set_notifications(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@disp.message_handler()
+
 async def notification():
     current_games = get_curr_free()
     latest_games = get_latest_giveaway()

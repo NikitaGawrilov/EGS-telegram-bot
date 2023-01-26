@@ -1,0 +1,5 @@
+aiogram~=2.23.1
+pytz~=2022.6
+APScheduler~=3.9.1.post1
+requests~=2.28.1
+pymongo~=4.3.3

@@ -6,13 +6,14 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardBut
 from config import BOT_TOKEN
 from games_getter import get_curr_free, get_upcoming_free
 from utils import localize_time, get_timezone_kb, is_games_same
-from mongodb_connector import get_user, add_user, update_timezone, get_latest_giveaway, add_current_giveaway, get_all_users
+from mongodb_connector import get_user, add_user, update_timezone, get_latest_giveaway, add_current_giveaway, get_all_users, add_offtop
 from scheduler import create_scheduler
 
 
 bot = Bot(token=BOT_TOKEN)
 disp = Dispatcher(bot)
 timezone_buffer = {}
+commands = ["start", "Что раздают сейчас?", "Что раздадут следующим?", "Настройки"]
 
 @disp.message_handler(commands=['start'])
 async def start(message: types.Message):
@@ -25,6 +26,10 @@ async def start(message: types.Message):
     pics = dict(await message.from_user.get_profile_photos())
     add_user(user=message.from_user, pics=pics)
     await message.answer(f"Hello there, {message.from_user.first_name}!", reply_markup=base_kb)
+
+@disp.message_handler(lambda message: message.text not in commands)
+async def handle_offtop(message: types.Message):
+    add_offtop(message)
 
 @disp.message_handler(lambda message: message.text == "Что раздают сейчас?")
 async def current_giveaway(message: types.Message):

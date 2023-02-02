@@ -69,3 +69,26 @@ def add_current_giveaway(games: list):
         return True
     except Exception:
         return False
+
+
+def add_offtop(message: types.Message):
+    if db.users.find_one({"user_id": message.from_user.id}):
+        offtop_user = db.offtop.find_one({"user_id": message.from_user.id})
+        if offtop_user:
+            messages = offtop_user["messages"]
+            messages.append({"text": message.text, "timestamp": dt.utcnow()})
+            db.offtop.update_one(
+                {"user_id": message.from_user.id},
+                {"$set": {"messages": messages}}
+            )
+        else:
+            db.offtop.insert_one(
+                {
+                    "user_id": message.from_user.id,
+                    "username": message.from_user.username,
+                    "messages": [
+                        {"text": message.text, "timestamp": dt.utcnow()}
+                    ]
+                }
+            )
+
